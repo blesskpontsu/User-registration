@@ -4,66 +4,30 @@ namespace app\models;
 
 require_once __DIR__ . '../../../vendor/autoload.php';
 
-use PDOException;
 use app\database\DatabaseConnection;
-
-
 
 class Payment extends DatabaseConnection
 {
-    private $payment_type;
-    private $card_name;
-    private $card_number;
-    private $expiration;
-    private $cvv;
-    private $id;
 
-    public function __construct($type, $name, $number, $expiration, $cvv)
+    public function createPayment($userID, $payment_type, $card_name, $card_number, $expiration, $cvv)
     {
-        $this->payment_type = $type;
-        $this->card_name = $name;
-        $this->card_number = $number;
-        $this->expiration = $expiration;
-        $this->cvv = $cvv;
-    }
+        // Initiating database connection from the DatabaseConnection class 
+        $this->connect();
 
-    public function getID()
-    {
-        return $this->id;
-    }
+        //Query for inserting payments
+        $sql =
+            "INSERT INTO payments(userID,payment_type,card_name,card_number,expiration,cvv) VALUES (:userID,:payment_type, :card_name, :card_number, :expiration, :cvv);";
 
+        $param = [
+            "userID" => $userID,
+            "payment_type" => $payment_type,
+            "card_name" => $card_name,
+            "card_number" => $card_number,
+            "expiration" => $expiration,
+            "cvv" => $cvv,
+        ];
 
-    public function createPayment()
-    {
-        try {
-            $this->connect();
-            $sql =
-                "INSERT INTO payment(
-                payment_type,
-                card_name,
-                card_number,
-                expiration,
-                cvv
-                ) 
-                VALUES (
-                    :payment_type, 
-                    :card_name, 
-                    :card_number, 
-                    :expiration, 
-                    :cvv
-                    );";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->execute([
-                "payment_type" => $this->payment_type,
-                "card_name" => $this->card_name,
-                "card_number" => $this->card_number,
-                "expiration" => $this->expiration,
-                "cvv" => $this->cvv
-            ]);
-            $this->id = $this->conn->lastInsertId();
-        } catch (PDOException $e) {
-            echo 'Error inserting payments: ' . $e->getMessage();
-        }
-        $stmt = $this->disconnect();
+        //Insert data into the database
+        $this->insert($sql, $param);
     }
 }

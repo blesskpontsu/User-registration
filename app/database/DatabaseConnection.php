@@ -3,6 +3,7 @@
 namespace app\database;
 
 use PDO;
+use Exception;
 use PDOException;
 
 class DatabaseConnection
@@ -16,7 +17,7 @@ class DatabaseConnection
 
 
     //Establishing connection to the database
-    public function connect()
+    protected function connect()
     {
         try {
             $pdo = 'mysql:host=' . $this->host . ';dbname=' . $this->database;
@@ -26,7 +27,38 @@ class DatabaseConnection
         }
     }
 
-    public function disconnect()
+    protected function execute($query = "", $param = [])
+    {
+        try {
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute($param);
+            return $stmt;
+        } catch (Exception $e) {
+            return throw new Exception($e->getMessage());
+        }
+    }
+
+    protected function insert($query, $param)
+    {
+        try {
+            $this->execute($query, $param);
+            return $this->conn->lastInsertId();
+        } catch (Exception $e) {
+            return throw new Exception($e->getMessage());
+        }
+    }
+
+    protected function select($query = "", $param = [])
+    {
+        try {
+            $stmt = $this->execute($query, $param);
+            return $stmt->fetchAll();
+        } catch (Exception $e) {
+            return throw new Exception($e->getMessage());
+        }
+    }
+
+    protected function disconnect()
     {
         $this->conn = null;
     }

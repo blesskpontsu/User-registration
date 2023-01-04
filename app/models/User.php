@@ -5,88 +5,42 @@ namespace app\models;
 require_once __DIR__ . '../../../vendor/autoload.php';
 
 use app\database\DatabaseConnection;
-use PDOException;
 
 class User extends DatabaseConnection
 {
-    private $payment_id;
-    private $name;
-    private $dob;
-    private $address;
-    private $country;
-    private $state;
-    private $zip;
-    private $profile;
+    private $id; //This property is to hold the userId
 
-
-    //This is called when the class gets instantiated
-    public function __construct($payment_id, $name, $dob, $address, $country, $state, $zip, $profile)
+    //Getter method for userId
+    public function getID()
     {
-        $this->payment_id = $payment_id;
-        $this->name = $name;
-        $this->dob = $dob;
-        $this->address = $address;
-        $this->country = $country;
-        $this->state = $state;
-        $this->zip = $zip;
-        $this->profile = $profile;
+        return $this->id;
     }
 
-    //Getter and Setter methods
-
-    //ID
-
-    // This method inserts data into the database
-    public function createUser()
+    // Inserting Data into the database
+    public function insertUser($name, $dob, $address, $country, $state, $zip, $profile)
     {
-        //Using Prepared Statements
-        try {
-            //Initiating Database Connection
-            $this->connect();
+        // Initiating Connection to Database
+        $this->connect();
 
-            //SQL query
-            $sql =
-                "INSERT INTO users(
-                    paymentID,
-                    name,
-                    dob,
-                    address,
-                    country,
-                    state,
-                    zip,
-                    profile
-                ) 
-                VALUES 
-                (
-                    :paymentID,
-                    :name,
-                    :dob,
-                    :address,
-                    :country,
-                    :state,
-                    :zip,
-                    :profile
-                );";
+        //SQL query for inserting users
+        $sql =
+            "INSERT INTO users(name,dob,address,country,state,zip,profile) VALUES (:name,:dob,:address,:country,:state,:zip,:profile);";
 
-            // Preparing Query for Execusion
-            $stmt = $this->conn->prepare($sql);
+        // Parameters
+        $param = [
+            "name" => $name,
+            "dob" => $dob,
+            "address" => $address,
+            "country" => $country,
+            "state" => $state,
+            "zip" => $zip,
+            "profile" => $profile
+        ];
 
-            // Executing Query
-            $stmt->execute([
-                "paymentID" => $this->payment_id,
-                "name" => $this->name,
-                "dob" => $this->dob,
-                "address" => $this->address,
-                "country" => $this->country,
-                "state" => $this->state,
-                "zip" => $this->zip,
-                "profile" => $this->profile
-            ]);
-        } catch (PDOException $e) {
-            echo 'Error: ' . $e->getMessage();
-        }
+        // Insert Data and get lastInsertId to $id 
+        $id = $this->insert($sql, $param);
 
-        //Closing connection to the database
-        $stmt = $this->disconnect();
+        // Assigning lastInsertId to $id property
+        $this->id = $id;
     }
 }
